@@ -3,7 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 
 //TODO validation checking
-
+//TODO add https:// or http://
 //Use Embeded JS
 app.set("view engine", "ejs");
 
@@ -80,20 +80,24 @@ app.get("/hello", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-
   const randomKey = generateRandomString();
   const url = req.body.longURL;
   urlDatabase[randomKey] = url;
-  console.log("new url list:", urlDatabase);
   res.redirect(`/urls/${randomKey}`);
 });
 
-//Move above /urls POST???
+//validation checking???
+app.post("/urls/:id", (req, res) => {
+  const id = req.params.id;
+  const newURL = req.body.newURL;
+  urlDatabase[id] = newURL;
+  res.redirect("/urls");
+});
+
 app.post("/urls/:id/delete", (req, res) => {
   //TODO validation checking
   const idToRemove = req.params.id;
   delete urlDatabase[idToRemove];
-  console.log("list AFTER delete:", urlDatabase);
   res.redirect("/urls");
 });
 
