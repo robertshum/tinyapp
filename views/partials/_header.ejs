@@ -16,17 +16,27 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <form class="form-inline" id="login-form-id" action="/login" method="POST">
-          <label for="login-form-id"><%= userName %></label>
-            <input
-              class="form-control"
-              type="text"
-              name="username"
-              placeholder="Username"
-              style="width: 150px; margin: 1em"
-            />
-            <button type="submit" class="btn btn-outline-primary">Login</button>
-        </form>
+        <%if(userName === undefined || userName === "") { %>
+          <!--does not have userName-->
+          <form class="form-inline" id="login-form-login-id" action="/login" method="POST">
+            <label for="login-form-login-id">Login: </label>
+              <input
+                class="form-control"
+                type="text"
+                name="username"
+                placeholder="Username"
+                style="width: 150px; margin: 1em"
+              />
+              <button type="submit" class="btn btn-outline-primary">Login</button>
+          </form>
+        <% } else { %>
+          <!--Has userName-->
+          <form class="form-inline" id="login-form-logout-id" action="/logout" method="POST">
+            <label for="login-form-logout-id">Welcome back,<%= userName %></label>
+              <button type="submit" class="btn btn-outline-primary">Logout</button>
+          </form>
+        <% } %>
+
       </div>
     </div>
   </nav>

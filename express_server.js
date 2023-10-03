@@ -7,6 +7,7 @@ const PORT = 8080; // default port 8080
 
 //TODO validation checking
 //TODO add https:// or http://
+//TODO lots of magic values ("userName")
 //Use Embeded JS
 app.set("view engine", "ejs");
 
@@ -52,19 +53,19 @@ function generateRandomString() {
   return results;
 }
 
-function getCookies(req, input) {
-  if (input === "userName") {
-    const name = req.cookies[input];
+// function getStringGreeting(req, input) {
+//   if (input === "userName") {
+//     const name = req.cookies[input];
 
-    //no userName set
-    if (name === undefined || name === "") {
-      return "Login:";
-    }
+//     //no userName set
+//     if (name === undefined || name === "") {
+//       return "Login:";
+//     }
 
-    //there is a username
-    return `Welcome back, ${name}`;
-  }
-}
+//     //there is a username
+//     return `Welcome back, ${name}`;
+//   }
+// }
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -74,7 +75,7 @@ app.get("/urls", (req, res) => {
 
   const templateVars = {
     urls: urlDatabase,
-    userName: getCookies(req, "userName")
+    userName: req.cookies["userName"]
   };
   console.log(templateVars);
   res.render("urls_index", templateVars);
@@ -82,7 +83,7 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    userName: getCookies(req, "userName")
+    userName: req.cookies["userName"]
   };
   res.render("urls_new", templateVars);
 });
@@ -91,7 +92,7 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
-    userName: getCookies(req, "userName")
+    userName: req.cookies["userName"]
   };
   res.render("urls_show", templateVars);
 });
@@ -115,6 +116,19 @@ app.post("/login", (req, res) => {
 
   //set Cookies.
   res.cookie("userName", userName);
+
+  //redirect
+  res.redirect("/urls");
+});
+
+app.post("/logout", (req, res) => {
+  const userName = req.cookies["userName"];
+
+  if(userName !== undefined) {
+
+    //clear cookies
+    res.clearCookie("userName");
+  }
 
   //redirect
   res.redirect("/urls");
