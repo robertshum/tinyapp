@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
+//TODO validation checking
+
 //Use Embeded JS
 app.set("view engine", "ejs");
 
@@ -13,18 +15,36 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-//TODO move somewhere else buckaroo later
+//TODO move somewhere else, buckaroo
+//TODO refactor inside as well
 function generateRandomString() {
+
+  let results = '';
+
   //do this 6 times
-    //flip a coin (for upper or lower)
-      //heads - lower case
-        //pick a range from 77-122, randomly
-        //convert that to a character. String.fromCharCode()
-        //push that to an array.
-      //tails - upper case
-        //pick a range randomly from 65-90, randomly
-        //do same thing as above
-  //return array
+  const count = 7;
+  let char = '';
+  for (let i = 0; i < count; i++) {
+    if (Math.random() <= 0.5) {
+      //pick a range from 97-122, randomly (a-z)
+      const alphaNum = 97 + Math.random() * (122 - 97 + 1);
+
+      //convert that to a character. String.fromCharCode()
+      char = String.fromCharCode(alphaNum);
+      results += char;
+      continue;
+    }
+
+    //else, >= 0.5
+    //pick a range from 65-90, randomly (a-z)
+    const alphaNum = 65 + Math.random() * (90 - 65 + 1);
+
+    //convert that to a character. String.fromCharCode()
+    char = String.fromCharCode(alphaNum);
+    results += char;
+  }
+
+  return results;
 }
 
 app.get("/", (req, res) => {
@@ -45,6 +65,12 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+app.get("/u/:id", (req, res) => {
+  const key = req.params.id;
+  const longURL = urlDatabase[key];
+  res.redirect(longURL);
+});
+
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
@@ -54,9 +80,14 @@ app.get("/hello", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+
+  const randomKey = generateRandomString();
+  const url = req.body.longURL;
+  urlDatabase[randomKey] = url;
+  console.log("new url list:", urlDatabase);
+  res.redirect(`/urls/${randomKey}`);
 });
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
