@@ -79,6 +79,16 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+app.post("/login", (req, res) => {
+  const userName = req.body.username;
+
+  //set Cookies.
+  res.cookie("userName", userName);
+
+  //redirect
+  res.redirect("/urls");
+});
+
 app.post("/urls", (req, res) => {
   const randomKey = generateRandomString();
   const url = req.body.longURL;
