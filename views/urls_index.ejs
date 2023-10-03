@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
 
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap CSS has buttons preconfigured with css: https://getbootstrap.com/docs/4.0/components/buttons/-->
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
@@ -35,10 +35,12 @@
               <td><%= id %></td>
               <td><%= urls[id] %></td>
               <td><form method="POST" action="/urls/<%= id %>/delete">
-                <!--Bootstrap has buttons preconfigured with css: https://getbootstrap.com/docs/4.0/components/buttons/-->
+
                 <button type="submit" class="btn btn-outline-danger">Delete</button>
               </form></td>
-              <td><a href="/urls/<%= id %>">Edit Link</a></td>
+              <td><form method="GET" action="/urls/<%= id %>">
+                <button type="submit" class="btn btn-outline-primary">Edit</button>
+              </form></td>
             </tr>
           <% } %>
         </tbody>
