@@ -88,6 +88,14 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${randomKey}`);
 });
 
+//Move above /urls POST???
+app.post("/urls/:id/delete", (req, res) => {
+  //TODO validation checking
+  const idToRemove = req.params.id;
+  delete urlDatabase[idToRemove];
+  console.log("list AFTER delete:", urlDatabase);
+  res.redirect("/urls");
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
