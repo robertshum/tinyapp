@@ -32,7 +32,7 @@
         <% } else { %>
           <!--Has userName-->
           <form class="form-inline" id="login-form-logout-id" action="/logout" method="POST">
-            <label for="login-form-logout-id">Welcome back,<%= userName %></label>
+            <label for="login-form-logout-id"><%= userName.email %></label>
               <button type="submit" class="btn btn-outline-primary">Logout</button>
           </form>
         <% } %>

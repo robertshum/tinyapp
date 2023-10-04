@@ -19,7 +19,6 @@
           Short URL ID: <a href="/u/<%= id %>" target="_blank">
             <%= id %>
           </a>
-        <p class="card-text"> </p>
         <form id="longURL-id" class="container d-flex justify-content-center align-items-center" action="/urls/<%= id %>" method="POST">
           <label for="longURL-id">New URL:</label>
           <input class="form-control" type="text" name="newURL" value="<%= longURL %>"

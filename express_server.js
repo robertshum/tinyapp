@@ -21,6 +21,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  user1RandomID: {
+    id: "user1RandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 //TODO move somewhere else, buckaroo
 //TODO refactor inside as well
 function generateRandomString() {
@@ -53,46 +66,44 @@ function generateRandomString() {
   return results;
 }
 
-// function getStringGreeting(req, input) {
-//   if (input === "userName") {
-//     const name = req.cookies[input];
-
-//     //no userName set
-//     if (name === undefined || name === "") {
-//       return "Login:";
-//     }
-
-//     //there is a username
-//     return `Welcome back, ${name}`;
-//   }
-// }
-
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
 app.get("/urls", (req, res) => {
 
+  //get user id
+  const userId = req.cookies["user_id"];
+
   const templateVars = {
     urls: urlDatabase,
-    userName: req.cookies["userName"]
+    userName: users[userId]
   };
   console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
+
+  //get user id
+  const userId = req.cookies["user_id"];
+
   const templateVars = {
-    userName: req.cookies["userName"]
+    userName: users[userId]
   };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
+
+  //get user id
+  const userId = req.cookies["user_id"];
+
+
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
-    userName: req.cookies["userName"]
+    userName: users[userId]
   };
   res.render("urls_show", templateVars);
 });
@@ -111,6 +122,13 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+//GET - Register
+app.get("/register", (req, res) => {
+
+  res.render("register");
+});
+
+//POST - Login
 app.post("/login", (req, res) => {
   const userName = req.body.username;
 
@@ -121,10 +139,30 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+//POST - Register
+app.post("/register", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const id = generateRandomString() + generateRandomString();
+
+  //insert, via ES6 shorthand
+  users[id] = {
+    id,
+    email,
+    password
+  };
+
+  console.log(users);
+
+  //set Cookies.
+  res.cookie("user_id", id);
+  res.redirect("/urls");
+});
+
 app.post("/logout", (req, res) => {
   const userName = req.cookies["userName"];
 
-  if(userName !== undefined) {
+  if (userName !== undefined) {
 
     //clear cookies
     res.clearCookie("userName");
