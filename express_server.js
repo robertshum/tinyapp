@@ -25,7 +25,7 @@ const users = {
   user1RandomID: {
     id: "user1RandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: "1234",
   },
   user2RandomID: {
     id: "user2RandomID",
@@ -54,6 +54,9 @@ const findUserByEmail = function(users, email) {
   return null;
 };
 
+const getUserLoggedIn = function(req) {
+  return req.cookies["user_id"];
+};
 
 //TODO move somewhere else, buckaroo
 //TODO refactor inside as well
@@ -109,9 +112,15 @@ app.get("/urls", (req, res) => {
 //GET - Login Page
 app.get("/login", (req, res) => {
 
+  //check if user is logged in
+  if (getUserLoggedIn(req)) {
+    res.redirect("/urls");
+    return;
+  }
+
   const templateVars = {
     user: undefined
-  }
+  };
 
   res.render("login", templateVars);
 });
@@ -120,7 +129,13 @@ app.get("/login", (req, res) => {
 app.get("/urls/new", (req, res) => {
 
   //get user id
-  const userId = req.cookies["user_id"];
+  const userId = getUserLoggedIn(req);
+
+  //check if user is logged in
+  if (userId === undefined) {
+    res.redirect("/login");
+    return;
+  }
 
   const templateVars = {
     user: users[userId]
@@ -146,6 +161,13 @@ app.get("/urls/:id", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const key = req.params.id;
   const longURL = urlDatabase[key];
+
+  //the url id does not exist
+  if (longURL === undefined) {
+    res.setHeader("Content-Type", "text/html");
+    res.send("<html><body>The URL key does not exist.</body></html>\n");
+  }
+
   res.redirect(longURL);
 });
 
@@ -156,15 +178,22 @@ app.get("/urls.json", (req, res) => {
 
 //GET - Test HTML Hello
 app.get("/hello", (req, res) => {
+  res.setHeader("Content-Type", "text/html");
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 //GET - Register
 app.get("/register", (req, res) => {
 
+  //check if user is logged in
+  if (getUserLoggedIn(req)) {
+    res.redirect("/urls");
+    return;
+  }
+
   const templateVars = {
     user: undefined
-  }
+  };
   res.render("register", templateVars);
 });
 
@@ -217,16 +246,12 @@ app.post("/register", (req, res) => {
     return;
   }
 
-  //validate the email doesn't exist
-
   //insert, via ES6 shorthand
   users[id] = {
     id,
     email,
     password
   };
-
-  console.log("new users", users);
 
   //set Cookies.
   res.cookie("user_id", id);
@@ -249,6 +274,13 @@ app.post("/logout", (req, res) => {
 
 //POST - Create New URL / Key
 app.post("/urls", (req, res) => {
+
+  //check if user is logged in
+  if (getUserLoggedIn(req) === undefined) {
+    res.send("<html><body>You cannot shorten URLs unless you have an account.</body></html>\n");
+    return;
+  }
+
   const randomKey = generateRandomString();
   const url = req.body.longURL;
   urlDatabase[randomKey] = url;
