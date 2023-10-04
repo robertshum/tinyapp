@@ -2,6 +2,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
+const morgan = require("morgan");
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -9,13 +10,16 @@ const PORT = 8080; // default port 8080
 //TODO validation checking
 //TODO add https:// or http://
 //TODO lots of magic values ("1_id")
-//Use Embeded JS
+//Use Embeded JS (Set key view engine to ejs)
 app.set("view engine", "ejs");
 
 //Middleware - Used so we can populate body for POST requests
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
+
+//logger
+app.use(morgan('dev'));
 
 // const urlDatabase = {
 //   "b2xVn2": "http://www.lighthouselabs.ca",
