@@ -1,6 +1,7 @@
 //express for endpoints
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -258,8 +259,11 @@ app.post("/login", (req, res) => {
     return;
   }
 
+  //HASH BROWNS
+  const passwordMatch = bcrypt.compareSync(userPassword, user.password);
+
   //check if password matches
-  if (user.password !== userPassword) {
+  if (!passwordMatch) {
     res.statusCode = 403;
     res.send("cannot find user with this email and password");
     return;
@@ -292,11 +296,14 @@ app.post("/register", (req, res) => {
     return;
   }
 
+  //HASH BROWNS BABY
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
   //insert, via ES6 shorthand
   users[id] = {
     id,
     email,
-    password
+    password: hashedPassword
   };
 
   //set Cookies.
@@ -341,8 +348,6 @@ app.post("/urls", (req, res) => {
     longURL: url,
     userId
   };
-
-  console.log("after add db:", urlDatabase);
 
   res.redirect(`/urls/${randomKey}`);
 });
@@ -401,12 +406,9 @@ app.post("/urls/:id/delete", (req, res) => {
 
   const idToRemove = req.params.id;
   delete urlDatabase[idToRemove];
-  console.log("after delete db:", urlDatabase);
   res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-// The syntax for includes has changed in the latest version of EJS. We'll be using: <%- include('partials/_header') %> instead of what is recommended in the tutorial.
