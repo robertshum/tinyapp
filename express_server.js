@@ -16,9 +16,20 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cookieParser());
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userId: "user1RandomID"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userId: "user2RandomID"
+  }
 };
 
 const users = {
@@ -30,8 +41,22 @@ const users = {
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: "1234",
   },
+};
+
+const urlsForUser = function(urlDatabase, userId) {
+  const result = {};
+
+  for (const urlKey in urlDatabase) {
+    const urlObject = urlDatabase[urlKey];
+    if (urlObject.userId === userId) {
+      //add it to the result
+      result[urlKey] = urlObject;
+    }
+  }
+
+  return result;
 };
 
 const findUserByEmail = function(users, email) {
@@ -99,11 +124,20 @@ app.get("/", (req, res) => {
 //GET - URLS
 app.get("/urls", (req, res) => {
 
+  //check if user is logged in
+  if (getUserLoggedIn(req) === undefined) {
+    res.send("<html><body>Please login or create an account to view and create URLs.</body></html>\n");
+    return;
+  }
+
   //get user id
-  const userId = req.cookies["user_id"];
+  const userId = getUserLoggedIn(req);
+
+  //just get the ones for the user
+  const filteredUrlDatabase = urlsForUser(urlDatabase, userId);
 
   const templateVars = {
-    urls: urlDatabase,
+    urls: filteredUrlDatabase,
     user: users[userId]
   };
   res.render("urls_index", templateVars);
@@ -146,12 +180,24 @@ app.get("/urls/new", (req, res) => {
 //GET - View Specific URL
 app.get("/urls/:id", (req, res) => {
 
-  //get user id
-  const userId = req.cookies["user_id"];
+  //check if user is logged in
+  const userId = getUserLoggedIn(req);
+  if (userId === undefined) {
+    res.send("<html><body>You cannot view URLs unless you are logged in.</body></html>\n");
+    return;
+  }
+
+  //check if the URL belongs to them
+  const urlId = req.params.id;
+  const matchingUrls = urlsForUser(urlDatabase, userId);
+  if (matchingUrls[urlId] === undefined) {
+    res.send("<html><body>You cannot view the URL unless you were the author.</body></html>\n");
+    return;
+  }
 
   const templateVars = {
-    id: req.params.id,
-    longURL: urlDatabase[req.params.id],
+    id: urlId,
+    longURL: urlDatabase[urlId].longURL,
     user: users[userId]
   };
   res.render("urls_show", templateVars);
@@ -160,7 +206,7 @@ app.get("/urls/:id", (req, res) => {
 //GET - Redirect to long URL
 app.get("/u/:id", (req, res) => {
   const key = req.params.id;
-  const longURL = urlDatabase[key];
+  const longURL = urlDatabase[key].longURL;
 
   //the url id does not exist
   if (longURL === undefined) {
@@ -276,29 +322,86 @@ app.post("/logout", (req, res) => {
 app.post("/urls", (req, res) => {
 
   //check if user is logged in
-  if (getUserLoggedIn(req) === undefined) {
+  const userId = getUserLoggedIn(req);
+  if (userId === undefined) {
     res.send("<html><body>You cannot shorten URLs unless you have an account.</body></html>\n");
     return;
   }
 
   const randomKey = generateRandomString();
   const url = req.body.longURL;
-  urlDatabase[randomKey] = url;
+
+  //TODO duplicate in post edit
+  if (!url.includes("http://") && !url.includes("https://")) {
+    res.send("<html><body>Please attach http:// or https://</body></html>\n");
+    return;
+  }
+
+  urlDatabase[randomKey] = {
+    longURL: url,
+    userId
+  };
+
+  console.log("after add db:", urlDatabase);
+
   res.redirect(`/urls/${randomKey}`);
 });
 
-//validation checking???
 app.post("/urls/:id", (req, res) => {
-  const id = req.params.id;
+
+  //check if user is logged in
+  const userId = getUserLoggedIn(req);
+  if (userId === undefined) {
+    res.send("<html><body>You cannot edit links unless you are logged in.</body></html>\n");
+    return;
+  }
+
+  //check if the URL belongs to them
+  const urlId = req.params.id;
+  const matchingUrls = urlsForUser(urlDatabase, userId);
+  if (matchingUrls[urlId] === undefined) {
+    res.send("<html><body>You cannot edit the URL unless you were the author.</body></html>\n");
+    return;
+  }
+
+  //CASE - POST /urls/:id should return a relevant error message if id does not exist
+  //we will never get this because it would be caught in the first two checks above.
+
   const newURL = req.body.newURL;
-  urlDatabase[id] = newURL;
+
+  if (!newURL.includes("http://") && !newURL.includes("https://")) {
+    res.send("<html><body>Please attach http:// or https://</body></html>\n");
+    return;
+  }
+
+  urlDatabase[urlId].longURL = newURL;
   res.redirect("/urls");
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  //TODO validation checking
+
+  //TODO duplicated code as /urls/:id POST
+  //check if user is logged in
+  const userId = getUserLoggedIn(req);
+  if (userId === undefined) {
+    res.send("<html><body>You cannot delete links unless you are logged in.</body></html>\n");
+    return;
+  }
+
+  //check if the URL belongs to them
+  const urlId = req.params.id;
+  const matchingUrls = urlsForUser(urlDatabase, userId);
+  if (matchingUrls[urlId] === undefined) {
+    res.send("<html><body>You cannot delete the URL unless you were the author.</body></html>\n");
+    return;
+  }
+
+  //CASE - POST /urls/:id/delete should return a relevant error message if id does not exist
+  //we will never get this because it would be caught in the first two checks above.
+
   const idToRemove = req.params.id;
   delete urlDatabase[idToRemove];
+  console.log("after delete db:", urlDatabase);
   res.redirect("/urls");
 });
 
