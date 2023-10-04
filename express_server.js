@@ -7,7 +7,7 @@ const PORT = 8080; // default port 8080
 
 //TODO validation checking
 //TODO add https:// or http://
-//TODO lots of magic values ("userName")
+//TODO lots of magic values ("1_id")
 //Use Embeded JS
 app.set("view engine", "ejs");
 
@@ -34,7 +34,7 @@ const users = {
   },
 };
 
-const findUserByEmail = function(email) {
+const findUserByEmail = function(users, email) {
 
   //return null if email is empty
   if (typeof email === "string" && email.length === 0) {
@@ -47,7 +47,7 @@ const findUserByEmail = function(email) {
   for (const user in users) {
     const userParam = users[user];
     if (userParam.email === email) {
-      return user;
+      return userParam;
     }
   }
   //if it gets to here, return null
@@ -87,10 +87,13 @@ const generateRandomString = function() {
   return results;
 };
 
+
+//ROOT
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+//GET - URLS
 app.get("/urls", (req, res) => {
 
   //get user id
@@ -98,47 +101,60 @@ app.get("/urls", (req, res) => {
 
   const templateVars = {
     urls: urlDatabase,
-    userName: users[userId]
+    user: users[userId]
   };
-  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
+//GET - Login Page
+app.get("/login", (req, res) => {
+
+  const templateVars = {
+    user: undefined
+  }
+
+  res.render("login", templateVars);
+});
+
+//GET - New URL Page
 app.get("/urls/new", (req, res) => {
 
   //get user id
   const userId = req.cookies["user_id"];
 
   const templateVars = {
-    userName: users[userId]
+    user: users[userId]
   };
   res.render("urls_new", templateVars);
 });
 
+//GET - View Specific URL
 app.get("/urls/:id", (req, res) => {
 
   //get user id
   const userId = req.cookies["user_id"];
 
-
   const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
-    userName: users[userId]
+    user: users[userId]
   };
   res.render("urls_show", templateVars);
 });
 
+//GET - Redirect to long URL
 app.get("/u/:id", (req, res) => {
   const key = req.params.id;
   const longURL = urlDatabase[key];
   res.redirect(longURL);
 });
 
+//GET - JSON of url DB
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+//GET - Test HTML Hello
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
@@ -146,15 +162,37 @@ app.get("/hello", (req, res) => {
 //GET - Register
 app.get("/register", (req, res) => {
 
-  res.render("register");
+  const templateVars = {
+    user: undefined
+  }
+  res.render("register", templateVars);
 });
 
 //POST - Login
 app.post("/login", (req, res) => {
-  const userName = req.body.username;
+  const email = req.body.email;
+  const userPassword = req.body.password;
 
+  //check if user is valid
+  const user = findUserByEmail(users, email);
+
+  if (user === null) {
+    //can't find user
+    res.statusCode = 403;
+    res.send("cannot find user with this email and password");
+    return;
+  }
+
+  //check if password matches
+  if (user.password !== userPassword) {
+    res.statusCode = 403;
+    res.send("cannot find user with this email and password");
+    return;
+  }
+
+  //user email and password matches
   //set Cookies.
-  res.cookie("userName", userName);
+  res.cookie("user_id", user.id);
 
   //redirect
   res.redirect("/urls");
@@ -173,7 +211,7 @@ app.post("/register", (req, res) => {
     return;
   }
 
-  if(findUserByEmail(email)) {
+  if (findUserByEmail(users, email)) {
     res.statusCode = 400;
     res.send("This email is taken, buckaroo.");
     return;
@@ -188,26 +226,28 @@ app.post("/register", (req, res) => {
     password
   };
 
-  console.log(users);
+  console.log("new users", users);
 
   //set Cookies.
   res.cookie("user_id", id);
   res.redirect("/urls");
 });
 
+//POST - Log User Out
 app.post("/logout", (req, res) => {
-  const userName = req.cookies["userName"];
+  const user = req.cookies["user_id"];
 
-  if (userName !== undefined) {
+  if (user !== undefined) {
 
     //clear cookies
-    res.clearCookie("userName");
+    res.clearCookie("user_id");
   }
 
   //redirect
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
+//POST - Create New URL / Key
 app.post("/urls", (req, res) => {
   const randomKey = generateRandomString();
   const url = req.body.longURL;

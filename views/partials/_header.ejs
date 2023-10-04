@@ -1,41 +1,36 @@
 <header>
   <nav class="navbar navbar-expand-md navbar-dark bg-success">
     <a class="navbar-brand" href="/urls">TinyApp</a>
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-toggle="collapse"
-      data-target="#navbarNavAltMarkup"
-      aria-controls="navbarNavAltMarkup"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
-    >
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+      aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <%if(userName === undefined || userName === "") { %>
-          <!--does not have userName-->
-          <form class="form-inline" id="login-form-login-id" action="/login" method="POST">
-            <label for="login-form-login-id">Login: </label>
-              <input
-                class="form-control"
-                type="text"
-                name="username"
-                placeholder="Username"
-                style="width: 150px; margin: 1em"
-              />
-              <button type="submit" class="btn btn-outline-primary">Login</button>
+
+        <%if( user === undefined ) { %>
+          <!--does not have userName, show Register and Login button-->
+          <form class="form-inline" style="margin: 0 0.5em;" id="login-form-id" action="/login" method="GET">
+            <button type="submit" class="btn btn-primary">Login</button>
           </form>
-        <% } else { %>
-          <!--Has userName-->
-          <form class="form-inline" id="login-form-logout-id" action="/logout" method="POST">
-            <label for="login-form-logout-id"><%= userName.email %></label>
+
+          <form class="form-inline" style="margin: 0 0.5em;" id="register-form-id" action="/register" method="GET">
+            <button type="submit" class="btn btn-info">Register</button>
+          </form>
+
+          <% } else { %>
+
+            <!--Has userName, show Logout button-->
+            <form class="form-inline" style="margin: 0 0.5em;" id="logout-form-id" action="/logout" method="POST">
+              <label for="logout-form-id" style="margin: 0 1em;" >
+                <%= user.email %>
+              </label>
               <button type="submit" class="btn btn-outline-primary">Logout</button>
-          </form>
-        <% } %>
+            </form>
+
+            <% } %>
 
       </div>
     </div>
