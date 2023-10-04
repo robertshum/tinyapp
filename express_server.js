@@ -3,6 +3,8 @@ const express = require("express");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
 const morgan = require("morgan");
+const constants = require("./constants");
+
 const {
   urlsForUser,
   findUserByEmail,
@@ -11,10 +13,8 @@ const {
 } = require("./helpers");
 
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = constants.PORT; // default port 8080
 
-//TODO lots of magic values ("1_id")
-//TODO status code can be inline with send
 //Use Embeded JS (Set key view engine to ejs)
 app.set("view engine", "ejs");
 
@@ -68,7 +68,7 @@ app.get("/urls", (req, res) => {
 
   //check if user is logged in
   if (getUserLoggedIn(req) === undefined) {
-    res.send("<html><body>Please login or create an account to view and create URLs.</body></html>\n");
+    res.send(constants.MSG_LOGIN_TO_VIEW_LIST_URLS);
     return;
   }
 
@@ -125,7 +125,7 @@ app.get("/urls/:id", (req, res) => {
   //check if user is logged in
   const userId = getUserLoggedIn(req);
   if (userId === undefined) {
-    res.send("<html><body>You cannot view URLs unless you are logged in.</body></html>\n");
+    res.send(constants.MSG_LOGIN_TO_VIEW_URL);
     return;
   }
 
@@ -133,7 +133,7 @@ app.get("/urls/:id", (req, res) => {
   const urlId = req.params.id;
   const matchingUrls = urlsForUser(urlDatabase, userId);
   if (matchingUrls[urlId] === undefined) {
-    res.send("<html><body>You cannot view the URL unless you were the author.</body></html>\n");
+    res.send(constants.MSG_AUTHOR_VIEW_ONLY);
     return;
   }
 
@@ -152,8 +152,7 @@ app.get("/u/:id", (req, res) => {
 
   //the url id does not exist
   if (longURL === undefined) {
-    res.setHeader("Content-Type", "text/html");
-    res.send("<html><body>The URL key does not exist.</body></html>\n");
+    res.send(constants.MSG_URL_KEY_INVALID);
   }
 
   res.redirect(longURL);
@@ -162,12 +161,6 @@ app.get("/u/:id", (req, res) => {
 //GET - JSON of url DB
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
-
-//GET - Test HTML Hello
-app.get("/hello", (req, res) => {
-  res.setHeader("Content-Type", "text/html");
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 //GET - Register
@@ -198,10 +191,9 @@ app.post("/login", (req, res) => {
   //check if user is valid
   const user = findUserByEmail(users, email);
 
-  if (user === null) {
+  if (user === undefined) {
     //can't find user
-    res.statusCode = 403;
-    res.send("cannot find user with this email and password");
+    res.status(403).send(constants.MSG_CANNOT_FIND_USER_CRED);
     return;
   }
 
@@ -210,14 +202,13 @@ app.post("/login", (req, res) => {
 
   //check if password matches
   if (!passwordMatch) {
-    res.status(403).send("cannot find user with this email and password");
+    //same error as above for security reasons
+    res.status(403).send(constants.MSG_CANNOT_FIND_USER_CRED);
     return;
   }
 
-  //user email and password matches
-  //set Cookies.
-  //res.cookie("user_id", user.id);
-  req.session.user_id = user.id;
+  //user.id at this point, so we set it to session cookies
+  req.session.userId = user.id;
 
   //redirect
   res.redirect("/urls");
@@ -227,18 +218,18 @@ app.post("/login", (req, res) => {
 app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+
+  //double the # of id's, double the fun.
   const id = generateRandomString() + generateRandomString();
 
   //email or pw are empty strings, return 404
   if ((email === undefined || email === "") || (password === undefined || password === "")) {
-    res.statusCode = 400;
-    res.send("Your password or email is empty!");
+    res.status(400).send(constants.MSG_EMPTY_EMAIL_PW);
     return;
   }
 
   if (findUserByEmail(users, email)) {
-    res.statusCode = 400;
-    res.send("This email is taken, buckaroo.");
+    res.status(400).send(constants.MSG_EMAIL_TAKEN);
     return;
   }
 
@@ -252,22 +243,19 @@ app.post("/register", (req, res) => {
     password: hashedPassword
   };
 
-  //set Cookies.
-  //res.cookie("user_id", id);
-  req.session.user_id = id;
+  //set session cookies
+  req.session.userId = id;
   res.redirect("/urls");
 });
 
 //POST - Log User Out
 app.post("/logout", (req, res) => {
   const user = getUserLoggedIn(req);
-  console.log("user", user);
+
   if (user !== undefined) {
-    console.log("123");
-    //clear cookies
-    //res.clearCookie("user_id");
-    //res.session.user_id = undefined;
-    delete req.session.user_id;
+
+    //remove userId from session
+    delete req.session.userId;
   }
 
   //redirect
@@ -280,7 +268,7 @@ app.post("/urls", (req, res) => {
   //check if user is logged in
   const userId = getUserLoggedIn(req);
   if (userId === undefined) {
-    res.send("<html><body>You cannot shorten URLs unless you have an account.</body></html>\n");
+    res.send(constants.MSG_CANNOT_SHORT_URL_WITHOUT_ACCT);
     return;
   }
 
@@ -289,7 +277,7 @@ app.post("/urls", (req, res) => {
 
   //TODO duplicate in post edit
   if (!url.includes("http://") && !url.includes("https://")) {
-    res.send("<html><body>Please attach http:// or https://</body></html>\n");
+    res.send(constants.MSG_MISSING_HTTP);
     return;
   }
 
@@ -306,7 +294,7 @@ app.post("/urls/:id", (req, res) => {
   //check if user is logged in
   const userId = getUserLoggedIn(req);
   if (userId === undefined) {
-    res.send("<html><body>You cannot edit links unless you are logged in.</body></html>\n");
+    res.send(constants.MSG_LOGIN_TO_EDIT_URL);
     return;
   }
 
@@ -314,7 +302,7 @@ app.post("/urls/:id", (req, res) => {
   const urlId = req.params.id;
   const matchingUrls = urlsForUser(urlDatabase, userId);
   if (matchingUrls[urlId] === undefined) {
-    res.send("<html><body>You cannot edit the URL unless you were the author.</body></html>\n");
+    res.send(constants.MSG_AUTHOR_TO_EDIT_URL);
     return;
   }
 
@@ -324,7 +312,7 @@ app.post("/urls/:id", (req, res) => {
   const newURL = req.body.newURL;
 
   if (!newURL.includes("http://") && !newURL.includes("https://")) {
-    res.send("<html><body>Please attach http:// or https://</body></html>\n");
+    res.send(constants.MSG_MISSING_HTTP);
     return;
   }
 
@@ -338,7 +326,7 @@ app.post("/urls/:id/delete", (req, res) => {
   //check if user is logged in
   const userId = getUserLoggedIn(req);
   if (userId === undefined) {
-    res.send("<html><body>You cannot delete links unless you are logged in.</body></html>\n");
+    res.send(constants.MSG_LOGIN_TO_DELETE_URL);
     return;
   }
 
@@ -346,7 +334,7 @@ app.post("/urls/:id/delete", (req, res) => {
   const urlId = req.params.id;
   const matchingUrls = urlsForUser(urlDatabase, userId);
   if (matchingUrls[urlId] === undefined) {
-    res.send("<html><body>You cannot delete the URL unless you were the author.</body></html>\n");
+    res.send(constants.MSG_AUTHOR_TO_DELETE_URL);
     return;
   }
 
@@ -358,6 +346,4 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
+app.listen(PORT);
