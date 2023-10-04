@@ -34,9 +34,30 @@ const users = {
   },
 };
 
+const findUserByEmail = function(email) {
+
+  //return null if email is empty
+  if (typeof email === "string" && email.length === 0) {
+    //empty
+    return null;
+  }
+  //iterate over users
+  //get the email of the object
+  //if it matches return user object NOT users.
+  for (const user in users) {
+    const userParam = users[user];
+    if (userParam.email === email) {
+      return user;
+    }
+  }
+  //if it gets to here, return null
+  return null;
+};
+
+
 //TODO move somewhere else, buckaroo
 //TODO refactor inside as well
-function generateRandomString() {
+const generateRandomString = function() {
 
   let results = '';
 
@@ -64,7 +85,7 @@ function generateRandomString() {
   }
 
   return results;
-}
+};
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -144,6 +165,21 @@ app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const id = generateRandomString() + generateRandomString();
+
+  //email or pw are empty strings, return 404
+  if ((email === undefined || email === "") || (password === undefined || password === "")) {
+    res.statusCode = 400;
+    res.send("Your password or email is empty!");
+    return;
+  }
+
+  if(findUserByEmail(email)) {
+    res.statusCode = 400;
+    res.send("This email is taken, buckaroo.");
+    return;
+  }
+
+  //validate the email doesn't exist
 
   //insert, via ES6 shorthand
   users[id] = {
