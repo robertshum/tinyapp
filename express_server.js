@@ -1,30 +1,38 @@
 //express for endpoints
 const express = require("express");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
 const morgan = require("morgan");
+const {
+  urlsForUser,
+  findUserByEmail,
+  getUserLoggedIn,
+  generateRandomString
+} = require("./helpers");
 
 const app = express();
 const PORT = 8080; // default port 8080
 
-//TODO validation checking
-//TODO add https:// or http://
 //TODO lots of magic values ("1_id")
+//TODO status code can be inline with send
 //Use Embeded JS (Set key view engine to ejs)
 app.set("view engine", "ejs");
 
 //Middleware - Used so we can populate body for POST requests
-app.use(express.urlencoded({ extended: true }));
+//if there is a url encoded body, it converts it
+app.use(express.urlencoded({ extended: false }));
 
-app.use(cookieParser());
+//app.use(cookieParser());
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["key1", "key2"], // Replace with your keys
+    maxAge: 24 * 60 * 60 * 1000, // Cookie expiration (e.g., 24 hours)
+  })
+);
 
 //logger
 app.use(morgan('dev'));
-
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
 
 const urlDatabase = {
   "b2xVn2": {
@@ -49,77 +57,6 @@ const users = {
     password: "1234",
   },
 };
-
-const urlsForUser = function(urlDatabase, userId) {
-  const result = {};
-
-  for (const urlKey in urlDatabase) {
-    const urlObject = urlDatabase[urlKey];
-    if (urlObject.userId === userId) {
-      //add it to the result
-      result[urlKey] = urlObject;
-    }
-  }
-
-  return result;
-};
-
-const findUserByEmail = function(users, email) {
-
-  //return null if email is empty
-  if (typeof email === "string" && email.length === 0) {
-    //empty
-    return null;
-  }
-  //iterate over users
-  //get the email of the object
-  //if it matches return user object NOT users.
-  for (const user in users) {
-    const userParam = users[user];
-    if (userParam.email === email) {
-      return userParam;
-    }
-  }
-  //if it gets to here, return null
-  return null;
-};
-
-const getUserLoggedIn = function(req) {
-  return req.cookies["user_id"];
-};
-
-//TODO move somewhere else, buckaroo
-//TODO refactor inside as well
-const generateRandomString = function() {
-
-  let results = '';
-
-  //do this 6 times
-  const count = 7;
-  let char = '';
-  for (let i = 0; i < count; i++) {
-    if (Math.random() <= 0.5) {
-      //pick a range from 97-122, randomly (a-z)
-      const alphaNum = 97 + Math.random() * (122 - 97 + 1);
-
-      //convert that to a character. String.fromCharCode()
-      char = String.fromCharCode(alphaNum);
-      results += char;
-      continue;
-    }
-
-    //else, >= 0.5
-    //pick a range from 65-90, randomly (a-z)
-    const alphaNum = 65 + Math.random() * (90 - 65 + 1);
-
-    //convert that to a character. String.fromCharCode()
-    char = String.fromCharCode(alphaNum);
-    results += char;
-  }
-
-  return results;
-};
-
 
 //ROOT
 app.get("/", (req, res) => {
@@ -250,6 +187,11 @@ app.get("/register", (req, res) => {
 
 //POST - Login
 app.post("/login", (req, res) => {
+
+  if (getUserLoggedIn(req)) {
+    res.redirect("/urls");
+  }
+
   const email = req.body.email;
   const userPassword = req.body.password;
 
@@ -268,14 +210,14 @@ app.post("/login", (req, res) => {
 
   //check if password matches
   if (!passwordMatch) {
-    res.statusCode = 403;
-    res.send("cannot find user with this email and password");
+    res.status(403).send("cannot find user with this email and password");
     return;
   }
 
   //user email and password matches
   //set Cookies.
-  res.cookie("user_id", user.id);
+  //res.cookie("user_id", user.id);
+  req.session.user_id = user.id;
 
   //redirect
   res.redirect("/urls");
@@ -311,18 +253,21 @@ app.post("/register", (req, res) => {
   };
 
   //set Cookies.
-  res.cookie("user_id", id);
+  //res.cookie("user_id", id);
+  req.session.user_id = id;
   res.redirect("/urls");
 });
 
 //POST - Log User Out
 app.post("/logout", (req, res) => {
-  const user = req.cookies["user_id"];
-
+  const user = getUserLoggedIn(req);
+  console.log("user", user);
   if (user !== undefined) {
-
+    console.log("123");
     //clear cookies
-    res.clearCookie("user_id");
+    //res.clearCookie("user_id");
+    //res.session.user_id = undefined;
+    delete req.session.user_id;
   }
 
   //redirect
