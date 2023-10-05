@@ -4,13 +4,14 @@ const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
 const morgan = require("morgan");
 const constants = require("./constants");
-var methodOverride = require('method-override')
+var methodOverride = require('method-override');
 
 const {
   urlsForUser,
   findUserByEmail,
   getUserLoggedIn,
-  generateRandomString
+  generateRandomString,
+  getPrettyCurrentDate
 } = require("./helpers");
 
 const app = express();
@@ -36,7 +37,7 @@ app.use(
 app.use(morgan('dev'));
 
 // override with POST having ?_method=DELETE
-app.use(methodOverride('_method'))
+app.use(methodOverride('_method'));
 
 const urlDatabase = {
   "b2xVn2": {
@@ -60,6 +61,23 @@ const users = {
     email: "user2@example.com",
     password: "1234",
   },
+};
+
+const analytics = {
+  "randomUrlId": {
+    total: 5,
+    visitDataArray: [
+      {
+        timestamp: "oct 1st, 3pm",
+        visitId: "23coisdf"
+      },
+      {
+        timestamp: "oct 1st, 5pm",
+        visitId: "rkljdgff"
+      },
+    ]
+    //...maybe more:??
+  }
 };
 
 //ROOT
@@ -144,7 +162,9 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = {
     id: urlId,
     longURL: urlDatabase[urlId].longURL,
-    user: users[userId]
+    user: users[userId],
+    viewCount: analytics[urlId].total,
+    viewData: analytics[urlId].visitDataArray
   };
   res.render("urls_show", templateVars);
 });
@@ -157,6 +177,16 @@ app.get("/u/:id", (req, res) => {
   //the url id does not exist
   if (longURL === undefined) {
     res.send(constants.MSG_URL_KEY_INVALID);
+  }
+
+  //Analytics
+  //Track the # of times it was redirected in the form of
+  if (analytics[key] !== undefined) {
+    analytics[key].total += 1;
+    analytics[key].visitDataArray.push({
+      timestamp: getPrettyCurrentDate(),
+      visitId: generateRandomString()
+    });
   }
 
   res.redirect(longURL);
@@ -290,6 +320,14 @@ app.post("/urls", (req, res) => {
     userId
   };
 
+  //analytics
+  if (analytics[randomKey] === undefined) {
+    analytics[randomKey] = {
+      total: 0,
+      visitDataArray: []
+    };
+  }
+
   res.redirect(`/urls/${randomKey}`);
 });
 
@@ -349,6 +387,12 @@ app.delete("/urls/:id", (req, res) => {
 
   const idToRemove = req.params.id;
   delete urlDatabase[idToRemove];
+
+  //analytics - remove
+  if (analytics[idToRemove] !== undefined) {
+    delete analytics[idToRemove];
+  }
+
   res.redirect("/urls");
 });
 

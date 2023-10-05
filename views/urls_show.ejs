@@ -28,6 +28,14 @@
             style="width: 300px; margin: 1em" />
           <button type="submit" class="btn btn-info">Submit</button>
         </form>
+        <label for="view-count-id">Total # of Visitors: <%=viewCount %></label>
+
+        <% for (let data of viewData) { %>
+          <br>
+           Time: <%= data.timestamp %>  visitId: <%= data.visitId %> 
+          <br>
+        <% } %>
+
         </p>
       </div>
       <div class="card-footer text-muted"></div>

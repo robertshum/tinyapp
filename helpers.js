@@ -72,9 +72,23 @@ const urlsForUser = function(urlDatabase, userId) {
   return result;
 };
 
+const getPrettyCurrentDate = function() {
+
+  // Get the current date and time
+  const now = new Date();
+
+  // Format the date and time nicely
+  const formattedDate = now.toLocaleDateString(); // Format as "MM/DD/YYYY" or "DD/MM/YYYY" depending on locale
+  const formattedTime = now.toLocaleTimeString(); // Format as "HH:MM:SS AM/PM" depending on locale
+
+  // Combine date and time for a full timestamp
+  return `${formattedDate} ${formattedTime}`;
+};
+
 module.exports = {
   urlsForUser,
   findUserByEmail,
   getUserLoggedIn,
-  generateRandomString
+  generateRandomString,
+  getPrettyCurrentDate
 };
