@@ -38,7 +38,7 @@ Unfinished Stretch Goals:
 !["Register New User Page"](https://github.com/robertshum/tinyapp/blob/main/docs/register-page.png)
 
 * Edit Link page for JUMBOSIZEDMOTORBOATPINATAS.com:
-!["Edit URL Page"](https://github.com/robertshum/tinyapp/blob/main/docs/edit-url.png)
+!["Edit URL Page"](https://github.com/robertshum/tinyapp/blob/main/docs/edit-url-page.png)
 
 ## Dependencies
 
