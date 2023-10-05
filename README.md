@@ -33,6 +33,7 @@ Users can create accounts to create/delete/edit shortened URL links.  Do note, t
 - EJS
 - bcryptjs
 - cookie-session
+- method-override
 
 ## Getting Started
 

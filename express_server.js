@@ -4,6 +4,7 @@ const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
 const morgan = require("morgan");
 const constants = require("./constants");
+var methodOverride = require('method-override')
 
 const {
   urlsForUser,
@@ -33,6 +34,9 @@ app.use(
 
 //logger
 app.use(morgan('dev'));
+
+// override with POST having ?_method=DELETE
+app.use(methodOverride('_method'))
 
 const urlDatabase = {
   "b2xVn2": {
@@ -289,7 +293,8 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${randomKey}`);
 });
 
-app.post("/urls/:id", (req, res) => {
+//PUT - Changing the long URL
+app.put("/urls/:id", (req, res) => {
 
   //check if user is logged in
   const userId = getUserLoggedIn(req);
@@ -320,7 +325,8 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post("/urls/:id/delete", (req, res) => {
+//DELETE - Remove URL from DB
+app.delete("/urls/:id", (req, res) => {
 
   //TODO duplicated code as /urls/:id POST
   //check if user is logged in
