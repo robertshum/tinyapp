@@ -4,12 +4,18 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Description
 
-Users can create accounts to create/delete/edit shortened URL links.  Do note, there isn't a DB in the backend this portion is mocked in the server (all data is lost in a shutdown/restart).
+Users can create accounts to create/delete/edit shortened URL links.  Do note, there isn't a DB in the backend.  That portion is mocked in the server (all data is lost in a shutdown/restart).
 
 ## Final Product
 
+The Url Page:
 !["URL Page"](https://github.com/robertshum/tinyapp/blob/main/docs/url-page.png)
-!["Register New User Page"](https://github.com/robertshum/tinyapp/blob/main/docs/register-page.png)
+
+Registering New Users:
+!["Register New User Page"](https://github.com/
+robertshum/tinyapp/blob/main/docs/register-page.png)
+
+Edit Link page for JUMBOSIZEDMOTORBOATPINATAS.com:
 !["Edit URL Page"](https://github.com/robertshum/tinyapp/blob/main/docs/edit-url.png)
 
 ## Dependencies
