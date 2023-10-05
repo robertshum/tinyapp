@@ -6,6 +6,14 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 Users can create accounts to create/delete/edit shortened URL links.  Do note, there isn't a DB in the backend.  That portion is mocked in the server (all data is lost in a shutdown/restart).
 
+## Branches
+
+* Main - demo ready
+
+* feature/cookies - allows setting and getting public (unsecured cookies).  Main version uses secured sessions.
+
+* feature/user-registration - creation of new users and storage inside mock DB.
+
 ## Final Product
 
 * The Url Page:
