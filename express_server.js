@@ -68,7 +68,7 @@ app.get("/urls", (req, res) => {
 
   //check if user is logged in
   if (getUserLoggedIn(req) === undefined) {
-    res.send(constants.MSG_LOGIN_TO_VIEW_LIST_URLS);
+    res.redirect("/login");
     return;
   }
 
@@ -222,7 +222,7 @@ app.post("/register", (req, res) => {
   //double the # of id's, double the fun.
   const id = generateRandomString() + generateRandomString();
 
-  //email or pw are empty strings, return 404
+  //email or pw are empty strings, return 400
   if ((email === undefined || email === "") || (password === undefined || password === "")) {
     res.status(400).send(constants.MSG_EMPTY_EMAIL_PW);
     return;

@@ -1,6 +1,5 @@
 
 //pre defined variables
-const MSG_LOGIN_TO_VIEW_LIST_URLS = "<html><body>Please login or create an account to view and create URLs.</body></html>\n";
 
 const MSG_LOGIN_TO_VIEW_URL = "<html><body>You cannot view a URL unless you are logged in.</body></html>\n";
 
@@ -29,7 +28,6 @@ const MSG_AUTHOR_TO_DELETE_URL = "<html><body>You cannot delete the URL unless y
 const PORT = 8080;
 
 module.exports = {
-  MSG_LOGIN_TO_VIEW_LIST_URLS,
   MSG_LOGIN_TO_VIEW_URL,
   MSG_AUTHOR_VIEW_ONLY,
   MSG_URL_KEY_INVALID,
