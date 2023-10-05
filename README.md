@@ -8,14 +8,13 @@ Users can create accounts to create/delete/edit shortened URL links.  Do note, t
 
 ## Final Product
 
-The Url Page:
+* The Url Page:
 !["URL Page"](https://github.com/robertshum/tinyapp/blob/main/docs/url-page.png)
 
-Registering New Users:
-!["Register New User Page"](https://github.com/
-robertshum/tinyapp/blob/main/docs/register-page.png)
+* Registering New Users:
+!["Register New User Page"](https://github.com/robertshum/tinyapp/blob/main/docs/register-page.png)
 
-Edit Link page for JUMBOSIZEDMOTORBOATPINATAS.com:
+* Edit Link page for JUMBOSIZEDMOTORBOATPINATAS.com:
 !["Edit URL Page"](https://github.com/robertshum/tinyapp/blob/main/docs/edit-url.png)
 
 ## Dependencies
